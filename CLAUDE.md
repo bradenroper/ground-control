@@ -34,16 +34,32 @@ for global hotkeys.
   (that causes reflow jank and hits per-app minimum sizes). Instead each window is shown
   as a `DwmRegisterThumbnail` live preview — the same GPU-composited mechanism Alt+Tab
   uses. See `Native/DwmThumbnail.cs`.
+- **One overlay window per monitor.** `OverlayController` enumerates monitors, assigns each
+  window to the monitor it lives on (`MonitorFromWindow`), and creates one full-monitor
+  overlay each. Every monitor lays out only its own windows, so a window morphs from its real
+  position *on its own screen* — nothing jumps to the primary monitor. The controller holds a
+  single global selection shared across all overlays.
+- **Natural (declumping) layout, not a grid.** `Layout/NaturalLayout.cs` starts each window at
+  its real position, pushes overlapping windows apart (minimum-translation resolution), then
+  uniformly scales the arrangement to fit. Windows keep their relative position and relative
+  size, so travel is minimized and big windows stay bigger — the KDE *Present Windows* approach.
 - **The overlay is opaque.** DWM thumbnails do not render onto a layered/`AllowsTransparency`
   window, so the backdrop is a solid dark window, not a see-through dim. (A blurred desktop
   screenshot backdrop is a possible future upgrade.)
-- **Coordinate space is physical pixels.** The overlay is sized to the primary screen in
-  physical pixels via `SetWindowPos` (`OnSourceInitialized`) so it matches the DWM thumbnail
-  coordinate space exactly. WPF chrome (highlight ring, title pill) is converted back to DIPs
-  using the window DPI scale (`_dpi`).
-- **Animation = exponential smoothing.** `CompositionTarget.Rendering` eases each thumbnail's
-  `Current` rect toward its `Target` rect every frame (`OnRender`). This is framerate-independent
-  and naturally re-targets when the selection moves — no storyboards. Tune feel with `Tau`.
+- **Coordinate space is physical pixels.** Each overlay is sized to its monitor in physical
+  pixels via `SetWindowPos` (`OnSourceInitialized`), matching the DWM thumbnail coordinate
+  space exactly. Per-monitor DPI comes from `GetDpiForMonitor`; WPF chrome (ring, title pill)
+  is converted back to DIPs via that scale (`_dpi`).
+- **Three animation phases** in `OverlayWindow.OnRender` (driven by `CompositionTarget.Rendering`):
+  - **Intro** — a fixed `IntroDuration` (0.75s) `easeInOutCubic` morph from real position → slot.
+  - **Idle** — thumbnails are static (DWM keeps them live); only the highlight animates, via
+    framerate-independent exponential smoothing (`Tau`) for snappy navigation.
+  - **Outro** — on confirm/cancel, a `OutroDuration` (0.55s) eased morph back to real positions.
+    The controller waits for *all* monitors' outros (`OnOutroComplete`) before focusing the
+    chosen window.
+- **Navigation is spatial, not index-based.** Arrow keys pick the best-scoring window in the
+  pressed direction using global (virtual-desktop) target centers, so it crosses monitors and
+  handles the non-grid organic layout naturally.
 - **Selection chrome lives in the gap.** DWM draws thumbnails *on top* of WPF content, so the
   highlight ring is drawn slightly larger than the thumbnail (in the `Inset` gap) and the title
   pill sits below it.
@@ -52,23 +68,25 @@ for global hotkeys.
 
 | File | Responsibility |
 |------|----------------|
-| `App.xaml.cs` | Startup, registers global hotkeys, owns the overlay lifecycle |
+| `App.xaml.cs` | Startup, registers global hotkeys, owns the controller lifecycle |
 | `HotKeyManager.cs` | Hidden message window + `RegisterHotKey` |
-| `OverlayWindow.xaml(.cs)` | The fullscreen grid: enumerate → layout → animate → navigate → focus |
-| `Layout/GridLayout.cs` | Aspect-preserving grid packing (picks column count by max thumbnail area) |
+| `OverlayController.cs` | Per-monitor overlays, global selection, spatial nav, confirm/cancel, focus |
+| `OverlayWindow.xaml(.cs)` | One monitor's view: layout → animate (intro/idle/outro) → input forwarding |
+| `OverlayItem.cs` | One window's thumbnail + animation rects |
+| `Layout/NaturalLayout.cs` | Declumping "natural" layout (KDE Present Windows style) |
+| `Layout/RectD.cs` | Double-precision rectangle |
+| `Native/MonitorEnumerator.cs` | Enumerates monitors + per-monitor DPI |
 | `Native/WindowEnumerator.cs` | Alt+Tab-style filtered list of real top-level windows |
 | `Native/DwmThumbnail.cs` | RAII wrapper over a DWM thumbnail registration |
 | `Native/NativeMethods.cs` | All P/Invoke signatures and constants |
 
-## Known limitations (v1) / next steps
+## Known limitations / next steps
 
-- **Primary monitor only.** Multi-monitor layout is the obvious next step (enumerate per
-  monitor, lay out windows on the screen they live on, or one combined surface).
 - **Minimized windows are skipped** — DWM can't produce a live thumbnail of a window that
   isn't being composited. Could restore-then-thumbnail, or fall back to a static icon.
 - **Backdrop is flat dark.** Capture + blur the desktop for the real macOS look.
 - **No tray icon.** Quit is hotkey-only (`Ctrl+Alt+Shift+Q`).
-- **Layout is a plain grid.** macOS morphs windows from their real positions into a "natural"
-  layout — KDE's open-source *Present Windows* effect is the reference for that algorithm.
-- Focus uses the `AttachThreadInput` trick in `FocusWindow` to bypass foreground-stealing
-  restrictions; watch this if activation ever flakes.
+- **Cross-monitor highlight doesn't slide** — the ring snaps when selection jumps to another
+  monitor (each overlay owns its own ring). Within a monitor it slides smoothly.
+- Focus uses the `AttachThreadInput` trick in `OverlayController.FocusWindow` to bypass
+  foreground-stealing restrictions; watch this if activation ever flakes.

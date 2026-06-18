@@ -10,7 +10,7 @@ public partial class App : Application
     private const uint VK_Q = 0x51;
 
     private HotKeyManager? _hotkeys;
-    private OverlayWindow? _overlay;
+    private OverlayController? _controller;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -35,16 +35,17 @@ public partial class App : Application
 
     private void OnActivate()
     {
-        if (_overlay != null)
+        if (_controller != null)
         {
             // Second press of the hotkey while open = focus the highlighted window.
-            _overlay.ConfirmSelection();
+            _controller.ConfirmSelection();
             return;
         }
 
-        _overlay = new OverlayWindow(_hotkeys!.Handle);
-        _overlay.Closed += (_, _) => _overlay = null;
-        _overlay.ShowAndActivate();
+        var controller = new OverlayController(_hotkeys!.Handle);
+        controller.Closed += () => _controller = null;
+        if (controller.Show())
+            _controller = controller;
     }
 
     protected override void OnExit(ExitEventArgs e)
