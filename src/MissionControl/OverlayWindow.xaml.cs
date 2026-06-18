@@ -18,14 +18,17 @@ public partial class OverlayWindow : Window
     {
         public required WindowInfo Window;
         public required DwmThumbnail Thumb;
+        public RectD Start;    // where the real window is (physical px) — intro origin
         public RectD Target;   // final thumbnail rect (physical px)
         public RectD Current;  // animated rect (physical px)
         public int Row, Col;
     }
 
-    private const double Gap = 28;     // px between cells, and the outer margin
-    private const double Inset = 12;   // px the thumbnail is inset within its cell
-    private const double Tau = 0.055;  // smoothing time constant (s); smaller = snappier
+    private const double Gap = 28;            // px between cells, and the outer margin
+    private const double Inset = 12;          // px the thumbnail is inset within its cell
+    private const double IntroDuration = 0.75; // s — morph from real position into the grid
+    private const double Tau = 0.055;         // smoothing time constant (s) for highlight nav
+    private const double HighlightPad = 8;    // px the highlight ring extends past the thumbnail
 
     private readonly IntPtr _excludeHwnd;
     private readonly List<Item> _items = new();
@@ -41,6 +44,7 @@ public partial class OverlayWindow : Window
     private RectD _highlightTarget;
     private bool _highlightInit;
 
+    private bool _introDone;
     private bool _ready;
     private bool _closing;
 
@@ -131,7 +135,8 @@ public partial class OverlayWindow : Window
 
             // Begin the morph from the window's real on-screen footprint.
             var r = it.Window.Rect;
-            it.Current = new RectD(r.Left, r.Top, Math.Max(1, r.Width), Math.Max(1, r.Height));
+            it.Start = new RectD(r.Left, r.Top, Math.Max(1, r.Width), Math.Max(1, r.Height));
+            it.Current = it.Start;
         }
     }
 
@@ -150,24 +155,52 @@ public partial class OverlayWindow : Window
         _lastT = t;
         if (dt <= 0) return;
 
-        // Framerate-independent exponential smoothing toward each target rect.
-        double k = 1.0 - Math.Exp(-dt / Tau);
-
-        foreach (var it in _items)
+        if (!_introDone)
         {
-            it.Current = Lerp(it.Current, it.Target, k);
-            var r = it.Current;
-            it.Thumb.SetDestination(
-                (int)Math.Round(r.X), (int)Math.Round(r.Y),
-                (int)Math.Round(r.X + r.W), (int)Math.Round(r.Y + r.H));
+            // One-time eased morph: real window position -> grid slot, over IntroDuration.
+            double p = Math.Min(1.0, t / IntroDuration);
+            double eased = EaseInOutCubic(p);
+
+            foreach (var it in _items)
+            {
+                it.Current = Lerp(it.Start, it.Target, eased);
+                PushDestination(it);
+            }
+
+            // During the intro the highlight rides along with its thumbnail.
+            if (_selected >= 0 && _selected < _items.Count)
+            {
+                _highlightCurrent = Inflate(_items[_selected].Current, HighlightPad);
+                UpdateHighlightVisual();
+            }
+
+            if (p >= 1.0) _introDone = true;
+            return;
         }
 
+        // After the intro, thumbnails are settled (DWM keeps them live on its own); only the
+        // highlight animates, using framerate-independent exponential smoothing for snappy nav.
         if (_highlightInit)
         {
+            double k = 1.0 - Math.Exp(-dt / Tau);
             _highlightCurrent = Lerp(_highlightCurrent, _highlightTarget, k);
             UpdateHighlightVisual();
         }
     }
+
+    private void PushDestination(Item it)
+    {
+        var r = it.Current;
+        it.Thumb.SetDestination(
+            (int)Math.Round(r.X), (int)Math.Round(r.Y),
+            (int)Math.Round(r.X + r.W), (int)Math.Round(r.Y + r.H));
+    }
+
+    private static double EaseInOutCubic(double p) =>
+        p < 0.5 ? 4 * p * p * p : 1 - Math.Pow(-2 * p + 2, 3) / 2;
+
+    private static RectD Inflate(RectD r, double pad) =>
+        new(r.X - pad, r.Y - pad, r.W + pad * 2, r.H + pad * 2);
 
     private static RectD Lerp(RectD a, RectD b, double k) => new(
         a.X + (b.X - a.X) * k,
@@ -180,15 +213,12 @@ public partial class OverlayWindow : Window
     {
         if (_selected < 0 || _selected >= _items.Count) return;
 
-        const double pad = 8;
-        var tr = _items[_selected].Target;
-        _highlightTarget = new RectD(tr.X - pad, tr.Y - pad, tr.W + pad * 2, tr.H + pad * 2);
+        _highlightTarget = Inflate(_items[_selected].Target, HighlightPad);
 
         if (initialize)
         {
             // Start the ring around the item's current (incoming) footprint so it flies in too.
-            var c = _items[_selected].Current;
-            _highlightCurrent = new RectD(c.X - pad, c.Y - pad, c.W + pad * 2, c.H + pad * 2);
+            _highlightCurrent = Inflate(_items[_selected].Current, HighlightPad);
             _highlightInit = true;
         }
 
