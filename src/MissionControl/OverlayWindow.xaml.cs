@@ -24,8 +24,8 @@ public partial class OverlayWindow : Window
     private const double LayoutMargin = 48;     // px inset of the layout from the monitor edges
     private const double Spacing = 26;          // px gap pushed between windows
     private const double Inset = 12;            // px the thumbnail sits inside its slot
-    private const double IntroDuration = 0.75;  // s — morph in from real positions
-    private const double OutroDuration = 0.55;  // s — morph back out on confirm/cancel
+    private const double IntroDuration = 0.2;   // s — morph in from real positions
+    private const double OutroDuration = 0.2;   // s — morph back out on confirm/cancel
     private const double Tau = 0.055;           // s — highlight smoothing for nav
     private const double HighlightPad = 8;      // px the ring extends past the thumbnail
 
@@ -103,8 +103,24 @@ public partial class OverlayWindow : Window
         NativeMethods.SetWindowPos(_hwnd, NativeMethods.HWND_TOPMOST, b.Left, b.Top, b.Width, b.Height,
             NativeMethods.SWP_SHOWWINDOW);
 
-        foreach (var it in _items)
-            it.Thumb = DwmThumbnail.Register(_hwnd, it.Window.Handle);
+        // DWM composites thumbnails in registration order — the *last* registered draws on top.
+        // _items is in z-order top-to-bottom (EnumWindows order), so register back-to-front to
+        // reproduce the real desktop depth: the frontmost window ends up on top of the stack.
+        for (int i = _items.Count - 1; i >= 0; i--)
+            _items[i].Thumb = DwmThumbnail.Register(_hwnd, _items[i].Window.Handle);
+    }
+
+    /// <summary>
+    /// Re-registers an item's thumbnail so it draws on top of all the others (DWM stacks by
+    /// registration order, and there is no reorder API). Used to lift the window we're about to
+    /// focus above the rest during the outro, so it visually rises before real focus transfers.
+    /// </summary>
+    public void RaiseToTop(OverlayItem item)
+    {
+        if (_hwnd == IntPtr.Zero || !_items.Contains(item)) return;
+        item.Thumb?.Dispose();
+        item.Thumb = DwmThumbnail.Register(_hwnd, item.Window.Handle);
+        PushDestination(item);   // re-show immediately at its current rect (avoid a blank frame)
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)

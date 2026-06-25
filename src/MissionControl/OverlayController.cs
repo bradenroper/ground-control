@@ -181,6 +181,15 @@ public sealed class OverlayController
     private void BeginClose()
     {
         _closing = true;
+
+        // Lift the window we're about to focus to the top of its overlay's thumbnail stack, so it
+        // rises above the others as everything morphs back — matching the real focus that follows.
+        if (_focusTarget != IntPtr.Zero)
+        {
+            var item = _all.FirstOrDefault(it => it.Window.Handle == _focusTarget);
+            item?.Owner.RaiseToTop(item);
+        }
+
         _outroPending = _overlays.Count;
         if (_outroPending == 0) { FinalizeClose(); return; }
         foreach (var overlay in _overlays)
@@ -194,13 +203,18 @@ public sealed class OverlayController
 
     private void FinalizeClose()
     {
+        // Focus the chosen window *before* tearing down the overlays. The overlays are topmost and
+        // still covering the desktop, so raising the real window behind them is invisible — but it
+        // means the real z-order already matches the thumbnails by the time they disappear. Doing it
+        // the other way round flashes the old desktop arrangement for a frame as the preview vanishes.
+        if (_focusTarget != IntPtr.Zero) FocusWindow(_focusTarget);
+
         foreach (var overlay in _overlays) overlay.CloseOverlay();
         _overlays.Clear();
 
         foreach (var item in _all) item.Thumb?.Dispose();
         _all.Clear();
 
-        if (_focusTarget != IntPtr.Zero) FocusWindow(_focusTarget);
         Closed?.Invoke();
     }
 
