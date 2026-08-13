@@ -1,12 +1,15 @@
 # Ground Control
 
 A prototype that brings macOS-style **Mission Control / Exposé** to Windows: press a
-hotkey and every open window smoothly shrinks into an aspect-preserving grid. Move the
-highlight with the arrow keys, then press the hotkey again to jump to that window.
+hotkey and every open window smoothly shrinks into an organic layout. Move the
+highlight with the arrow keys, then press the hotkey again (or Enter) to jump to that window.
 
-It uses **live DWM thumbnails** (the same GPU-composited previews behind Alt+Tab) rather
-than physically resizing windows — so previews are live and there's no reflow jank — and
-animates them with per-frame exponential smoothing for a smooth feel.
+![Ground Control Demo gif](resources/GroundControlDemo.gif)
+
+A tray icon will be added to control Ground Control, with more settings available upon right-click.
+
+![Ground Control Settings Menu](resources/SettingsMenu.png)
+
 
 ## Requirements
 
