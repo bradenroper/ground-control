@@ -12,7 +12,7 @@ namespace MissionControl;
 /// </summary>
 public sealed class Settings
 {
-    public const string DefaultHotkey = "Ctrl+Alt+M";
+    public const string DefaultHotkey = "Ctrl+Up";
     public const double DefaultIntroDuration = 0.20;
     public const double DefaultOutroDuration = 0.20;
 

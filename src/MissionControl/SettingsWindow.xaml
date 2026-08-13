@@ -195,7 +195,7 @@
                     BorderBrush="#FF3A3A48" BorderThickness="1"
                     CornerRadius="6" Height="34" Cursor="Hand"
                     MouseLeftButtonDown="OnHotkeyBoxClick">
-                <TextBlock x:Name="HotkeyText" Text="Ctrl+Alt+M"
+                <TextBlock x:Name="HotkeyText" Text="Ctrl+Up"
                            VerticalAlignment="Center" Margin="12,0"
                            FontSize="13"/>
             </Border>

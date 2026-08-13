@@ -72,7 +72,8 @@ public partial class App : Application
 
         if (!ApplyHotkey())
             _tray.ShowMessage("Hotkey unavailable",
-                $"{_settings.Hotkey} is already in use by another app. Open Settings from the tray icon to pick another.");
+                $"{_settings.Hotkey} is already in use by another app. Open Settings from the tray icon to pick another.",
+                warning: true);
         else if (_settings.IsFirstRun)
             _tray.ShowMessage("Mission Control is running",
                 $"Press {_settings.Hotkey} to show your windows. Settings live in the tray icon.");
@@ -149,7 +150,7 @@ public partial class App : Application
         // Only touch the registration when the effective binding actually changed.
         var wanted = _settings.Enabled ? _settings.HotKeySpec : default;
         if (wanted != _boundHotkey && !ApplyHotkey())
-            _tray?.ShowMessage("Hotkey unavailable", $"{_settings.Hotkey} is already in use by another app.");
+            _tray?.ShowMessage("Hotkey unavailable", $"{_settings.Hotkey} is already in use by another app.", warning: true);
     }
 
     // ---------------------------------------------------------------- overlay

@@ -41,7 +41,7 @@ public sealed class TrayIcon : IDisposable
             // never claims something that will not happen at sign-in.
             if (!AutoStart.SetEnabled(wanted))
             {
-                ShowMessage("Couldn't change startup", "The registry rejected the change to your startup entry.");
+                ShowMessage("Couldn't change startup", "The registry rejected the change to your startup entry.", warning: true);
                 return;
             }
             _settings.StartWithWindows = wanted;
@@ -84,11 +84,12 @@ public sealed class TrayIcon : IDisposable
         _icon.Text = Truncate($"Mission Control ({state})", 63);
     }
 
-    public void ShowMessage(string title, string body)
+    /// <param name="warning">Warnings get the alert glyph; everything else is informational.</param>
+    public void ShowMessage(string title, string body, bool warning = false)
     {
         _icon.BalloonTipTitle = title;
         _icon.BalloonTipText = body;
-        _icon.BalloonTipIcon = Forms.ToolTipIcon.Warning;
+        _icon.BalloonTipIcon = warning ? Forms.ToolTipIcon.Warning : Forms.ToolTipIcon.Info;
         _icon.ShowBalloonTip(5000);
     }
 

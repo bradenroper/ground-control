@@ -48,7 +48,7 @@ run; an Authenticode certificate is the only real fix.
 
 | Keys | Action |
 |------|--------|
-| `Ctrl+Alt+M` (configurable) | Open the overlay; press again to focus the highlighted window |
+| `Ctrl+Up` (configurable) | Open the overlay; press again to focus the highlighted window |
 | Arrow keys / `Tab` | Move the highlight between windows |
 | `Enter` | Focus the highlighted window |
 | Mouse click | Focus the clicked window |

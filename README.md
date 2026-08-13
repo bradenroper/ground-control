@@ -15,17 +15,24 @@ animates them with per-frame exponential smoothing for a smooth feel.
 
 No third-party packages — only built-in Windows APIs (`user32`, `dwmapi`).
 
-## Run
+## Install
+
+Run `dist/MissionControl-Setup-<version>.exe` (built by `build/build-installer.ps1`). It
+installs per-user into `%LOCALAPPDATA%\Programs`, needs no admin rights, and bundles the
+.NET runtime, so nothing else has to be installed first.
+
+## Run from source
 
 ```sh
 dotnet run --project src/MissionControl/MissionControl.csproj
 ```
 
-The app runs in the background with no window. Then:
+The app lives in the notification area — right-click its icon for **Settings…**, where the
+hotkey, the open/close animation lengths and "start with Windows" can be changed. Defaults:
 
 | Keys | Action |
 |------|--------|
-| `Ctrl+Alt+M` | Open the overlay / focus the highlighted window |
+| `Ctrl+Up` | Open the overlay / focus the highlighted window |
 | Arrows, `Tab` | Move between windows |
 | `Enter` or click | Focus a window |
 | `Esc` | Dismiss |
