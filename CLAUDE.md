@@ -1,4 +1,4 @@
-# Mission Control (Windows) — prototype
+# Mission Control (Windows)
 
 A Windows clone of macOS Mission Control / Exposé. A global hotkey shrinks every open
 window into a tidy, aspect-preserving grid; arrow keys move a highlight between them;
@@ -12,21 +12,64 @@ dotnet run   --project src/MissionControl/MissionControl.csproj
 ```
 
 Requires the .NET SDK (tested on 9.0.306) with the WindowsDesktop runtime. **No NuGet
-packages** — everything is `user32.dll` / `dwmapi.dll` P/Invoke that ships with Windows.
+packages** — everything is `user32.dll` / `dwmapi.dll` P/Invoke plus WPF and the one
+WinForms type (`NotifyIcon`) that ship with the Windows Desktop runtime.
 
-The app has **no visible window** until invoked. It sits in the background and listens
-for global hotkeys.
+The app has **no window of its own** beyond the settings dialog; it lives in the
+notification area and listens for the global hotkey.
+
+`MissionControl.exe --settings` opens the settings window. If a copy is already running,
+the new process hands the request over (named event, `InstanceSignal.cs`) and exits, so
+there is only ever one instance.
+
+## Packaging the installer
+
+```sh
+powershell -ExecutionPolicy Bypass -File build/build-installer.ps1            # dist/MissionControl-Setup-1.0.0.exe
+powershell -ExecutionPolicy Bypass -File build/build-installer.ps1 -Version 1.1.0
+powershell -ExecutionPolicy Bypass -File build/make-icon.ps1                  # regenerate Resources/app.ico
+```
+
+Needs Inno Setup 6 on the *build* machine (`winget install JRSoftware.InnoSetup`); nothing
+from it ships inside the app. The script publishes **self-contained single-file win-x64**, so
+the target machine needs no .NET runtime — that is what makes the ~60 MB installer worth it:
+installing the runtime would need admin rights, and this app is aimed at users who may not
+have them.
+
+Everything about the install is per-user and elevation-free (`PrivilegesRequired=lowest`):
+`%LOCALAPPDATA%\Programs\Mission Control`, Start Menu shortcuts, an HKCU uninstall entry, and
+the HKCU `Run` key for auto-start. An admin can still pass `/ALLUSERS`. `AppId` in
+`installer/MissionControl.iss` must never change — it is how Windows recognises an upgrade.
+
+The installer is **unsigned**, so SmartScreen shows an "unknown publisher" prompt on first
+run; an Authenticode certificate is the only real fix.
 
 ## Hotkeys
 
 | Keys | Action |
 |------|--------|
-| `Ctrl+Alt+M` | Open the overlay; press again to focus the highlighted window |
+| `Ctrl+Alt+M` (configurable) | Open the overlay; press again to focus the highlighted window |
 | Arrow keys / `Tab` | Move the highlight between windows |
 | `Enter` | Focus the highlighted window |
 | Mouse click | Focus the clicked window |
 | `Esc` / click empty space | Dismiss without switching |
-| `Ctrl+Alt+Shift+Q` | Quit the app |
+| `Ctrl+Alt+Shift+Q` | Quit the app (fixed; deliberately kept even when the app is disabled) |
+
+## Settings
+
+Tray icon → **Settings…** (or `--settings`). Everything applies and saves the moment it
+changes — there is no OK/Cancel — so a rebound hotkey can be tried immediately.
+
+| Setting | Effect |
+|---------|--------|
+| Enabled | Off releases the hotkey entirely, so another app can use the combination |
+| Hotkey | Any modifier + key; captured by pressing the combination |
+| Open / Close duration | The intro and outro morph lengths, 0–1.5 s (0 = instant) |
+| Start with Windows | HKCU `Run` entry |
+
+Stored in `%APPDATA%\MissionControl\settings.json`, which is meant to be hand-editable —
+malformed or out-of-range values fall back to defaults rather than blocking startup. The file
+is only read at startup, so hand-edits need a restart; changes made in the UI apply live.
 
 ## How it works (the important design decisions)
 
@@ -51,12 +94,22 @@ for global hotkeys.
   space exactly. Per-monitor DPI comes from `GetDpiForMonitor`; WPF chrome (ring, title pill)
   is converted back to DIPs via that scale (`_dpi`).
 - **Three animation phases** in `OverlayWindow.OnRender` (driven by `CompositionTarget.Rendering`):
-  - **Intro** — a fixed `IntroDuration` (0.75s) `easeInOutCubic` morph from real position → slot.
+  - **Intro** — an `easeInOutCubic` morph from real position → slot, over the user's *Open*
+    duration (default 0.2s), captured per-overlay at construction so a mid-flight settings
+    change can't retime a running animation.
   - **Idle** — thumbnails are static (DWM keeps them live); only the highlight animates, via
     framerate-independent exponential smoothing (`Tau`) for snappy navigation.
-  - **Outro** — on confirm/cancel, a `OutroDuration` (0.55s) eased morph back to real positions.
-    The controller waits for *all* monitors' outros (`OnOutroComplete`) before focusing the
-    chosen window.
+  - **Outro** — on confirm/cancel, an eased morph back to real positions over the *Close*
+    duration. The controller waits for *all* monitors' outros (`OnOutroComplete`) before
+    focusing the chosen window.
+- **The tray icon is WinForms' `NotifyIcon`.** WPF has no equivalent, and `NotifyIcon` comes
+  with the Windows Desktop runtime — so `UseWindowsForms` costs nothing at runtime. WinForms'
+  implicit usings collide with WPF's (`Application`, `MessageBox`, `Point`), so the csproj
+  removes them and `TrayIcon.cs` qualifies its WinForms references.
+- **Auto-start is the HKCU `Run` key, never HKLM or a scheduled task** — those need admin.
+  The registry is the source of truth and `settings.json` mirrors it (`AutoStart.Reconcile`):
+  the installer's checkbox, Task Manager or any other tool can change it, and a stale settings
+  file must not silently revert that on the next launch.
 - **Navigation is spatial, not index-based.** Arrow keys pick the best-scoring window in the
   pressed direction using global (virtual-desktop) target centers, so it crosses monitors and
   handles the non-grid organic layout naturally.
@@ -68,8 +121,14 @@ for global hotkeys.
 
 | File | Responsibility |
 |------|----------------|
-| `App.xaml.cs` | Startup, registers global hotkeys, owns the controller lifecycle |
-| `HotKeyManager.cs` | Hidden message window + `RegisterHotKey` |
+| `App.xaml.cs` | Startup, single-instance guard, hotkey (re)binding, tray + settings lifecycle |
+| `HotKeyManager.cs` | Hidden message window + `RegisterHotKey`, with per-registration unbinding |
+| `Settings.cs` | The JSON preferences file, its defaults, clamping and change event |
+| `HotKeySpec.cs` | Modifier+key combination: Win32 flags ⇄ "Ctrl+Alt+M" text ⇄ WPF key press |
+| `TrayIcon.cs` | Notification-area icon and menu (WinForms `NotifyIcon`) |
+| `SettingsWindow.xaml(.cs)` | Settings UI; applies and saves on every change |
+| `AutoStart.cs` | "Start with Windows" via the per-user `Run` key |
+| `InstanceSignal.cs` | Named event that forwards `--settings` to the running instance |
 | `OverlayController.cs` | Per-monitor overlays, global selection, spatial nav, confirm/cancel, focus |
 | `OverlayWindow.xaml(.cs)` | One monitor's view: layout → animate (intro/idle/outro) → input forwarding |
 | `OverlayItem.cs` | One window's thumbnail + animation rects |
@@ -79,13 +138,23 @@ for global hotkeys.
 | `Native/WindowEnumerator.cs` | Alt+Tab-style filtered list of real top-level windows |
 | `Native/DwmThumbnail.cs` | RAII wrapper over a DWM thumbnail registration |
 | `Native/NativeMethods.cs` | All P/Invoke signatures and constants |
+| `Resources/app.ico` | App + tray icon, generated by `build/make-icon.ps1` |
+| `installer/MissionControl.iss` | Inno Setup script (per-user, no elevation) |
+| `build/build-installer.ps1` | Publish self-contained + compile the setup exe |
+| `build/make-icon.ps1` | Draws and encodes the multi-size `.ico` |
 
 ## Known limitations / next steps
 
 - **Minimized windows are skipped** — DWM can't produce a live thumbnail of a window that
   isn't being composited. Could restore-then-thumbnail, or fall back to a static icon.
 - **Backdrop is flat dark.** Capture + blur the desktop for the real macOS look.
-- **No tray icon.** Quit is hotkey-only (`Ctrl+Alt+Shift+Q`).
+- **Windows 11 hides new tray icons** in the overflow flyout, and there is no supported API to
+  promote one. Users drag it onto the taskbar themselves.
+- **The installer is unsigned**, so first-run SmartScreen warns about an unknown publisher.
+- **No update mechanism.** Reinstalling over the top works (same `AppId`), but nothing checks
+  for new versions.
+- **x64 only.** `build-installer.ps1 -Runtime win-arm64` publishes, but the `.iss` declares
+  `ArchitecturesAllowed=x64compatible`, so an ARM64 build needs its own compile.
 - **Cross-monitor highlight doesn't slide** — the ring snaps when selection jumps to another
   monitor (each overlay owns its own ring). Within a monitor it slides smoothly.
 - Focus uses the `AttachThreadInput` trick in `OverlayController.FocusWindow` to bypass

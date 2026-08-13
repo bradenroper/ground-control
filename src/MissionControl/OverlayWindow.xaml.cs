@@ -24,14 +24,14 @@ public partial class OverlayWindow : Window
     private const double LayoutMargin = 48;     // px inset of the layout from the monitor edges
     private const double Spacing = 26;          // px gap pushed between windows
     private const double Inset = 12;            // px the thumbnail sits inside its slot
-    private const double IntroDuration = 0.2;   // s — morph in from real positions
-    private const double OutroDuration = 0.2;   // s — morph back out on confirm/cancel
     private const double Tau = 0.055;           // s — highlight smoothing for nav
     private const double HighlightPad = 8;      // px the ring extends past the thumbnail
 
     private readonly OverlayController _controller;
     private readonly MonitorInfo _monitor;
     private readonly List<WindowInfo> _windows;
+    private readonly double _introDuration;     // s — morph in from real positions (user setting)
+    private readonly double _outroDuration;     // s — morph back out on confirm/cancel (user setting)
     private readonly List<OverlayItem> _items = new();
     private readonly Stopwatch _clock = new();
 
@@ -49,11 +49,13 @@ public partial class OverlayWindow : Window
 
     public IReadOnlyList<OverlayItem> Items => _items;
 
-    public OverlayWindow(OverlayController controller, MonitorInfo monitor, List<WindowInfo> windows)
+    public OverlayWindow(OverlayController controller, MonitorInfo monitor, List<WindowInfo> windows, Settings settings)
     {
         _controller = controller;
         _monitor = monitor;
         _windows = windows;
+        _introDuration = settings.IntroDuration;
+        _outroDuration = settings.OutroDuration;
 
         InitializeComponent();
         SourceInitialized += OnSourceInitialized;
@@ -187,7 +189,7 @@ public partial class OverlayWindow : Window
         {
             case Phase.Intro:
             {
-                double p = Math.Min(1.0, t / IntroDuration);
+                double p = Progress(t, _introDuration);
                 double eased = EaseInOutCubic(p);
                 foreach (var it in _items)
                 {
@@ -213,7 +215,7 @@ public partial class OverlayWindow : Window
 
             case Phase.Outro:
             {
-                double p = Math.Min(1.0, t / OutroDuration);
+                double p = Progress(t, _outroDuration);
                 double eased = EaseInOutCubic(p);
                 foreach (var it in _items)
                 {
@@ -319,6 +321,10 @@ public partial class OverlayWindow : Window
     }
 
     // ---------------------------------------------------------------- helpers
+    /// <summary>Linear 0..1 progress. A zero-length duration lands on 1 immediately (instant morph).</summary>
+    private static double Progress(double t, double duration) =>
+        duration <= 0 ? 1.0 : Math.Min(1.0, t / duration);
+
     private static double EaseInOutCubic(double p) =>
         p < 0.5 ? 4 * p * p * p : 1 - Math.Pow(-2 * p + 2, 3) / 2;
 

@@ -8,10 +8,14 @@ namespace MissionControl;
 
 /// <summary>
 /// Registers process-wide global hotkeys. Uses a hidden message window so hotkeys
-/// fire regardless of which application currently has focus.
+/// fire regardless of which application currently has focus. Registrations can be
+/// released individually so the user can rebind the hotkey while the app is running.
 /// </summary>
 public sealed class HotKeyManager : IDisposable
 {
+    /// <summary>Id returned when a registration fails (e.g. the combination is taken by another app).</summary>
+    public const int InvalidId = 0;
+
     private readonly Window _window;
     private readonly IntPtr _handle;
     private readonly HwndSource _source;
@@ -40,13 +44,23 @@ public sealed class HotKeyManager : IDisposable
         _source.AddHook(WndProc);
     }
 
-    public bool Register(uint modifiers, uint virtualKey, Action action)
+    /// <summary>Registers a combination. Returns the id to pass to <see cref="Unregister"/>, or <see cref="InvalidId"/>.</summary>
+    public int Register(uint modifiers, uint virtualKey, Action action)
     {
         int id = _nextId++;
         if (!NativeMethods.RegisterHotKey(_handle, id, modifiers | NativeMethods.MOD_NOREPEAT, virtualKey))
-            return false;
+            return InvalidId;
         _actions[id] = action;
-        return true;
+        return id;
+    }
+
+    public int Register(HotKeySpec spec, Action action) =>
+        spec.IsValid ? Register(spec.Modifiers, spec.VirtualKey, action) : InvalidId;
+
+    public void Unregister(int id)
+    {
+        if (id == InvalidId || !_actions.Remove(id)) return;
+        NativeMethods.UnregisterHotKey(_handle, id);
     }
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

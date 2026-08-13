@@ -1,0 +1,255 @@
+﻿<Window x:Class="MissionControl.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Mission Control"
+        Width="440"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF15151B"
+        FontFamily="Segoe UI"
+        UseLayoutRounding="True">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="Accent" Color="#FF3B9EFF"/>
+        <SolidColorBrush x:Key="Text" Color="#FFECEDF2"/>
+        <SolidColorBrush x:Key="Muted" Color="#FF8A8D9B"/>
+        <SolidColorBrush x:Key="Line" Color="#FF2A2A35"/>
+        <SolidColorBrush x:Key="Field" Color="#FF1E1E28"/>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Text}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+
+        <!-- Checkbox: dark square with an accent fill and a hand-drawn tick when checked. -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource Text}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                            <Border x:Name="Box" Width="17" Height="17" CornerRadius="4"
+                                    Background="{StaticResource Field}"
+                                    BorderBrush="#FF3A3A48" BorderThickness="1"
+                                    VerticalAlignment="Center">
+                                <Path x:Name="Tick" Visibility="Collapsed"
+                                      Data="M 3,7.5 L 6.2,11 L 12,4"
+                                      Stroke="White" StrokeThickness="1.8"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"/>
+                            </Border>
+                            <ContentPresenter Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="{StaticResource Accent}"/>
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                <Setter TargetName="Tick" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Slider: thin track with an accent-filled portion and a round thumb. -->
+        <Style TargetType="Slider">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="22" VerticalAlignment="Center">
+                            <Border Height="4" CornerRadius="2" Background="#FF2E2E3A" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge" Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="4" CornerRadius="2"
+                                                        Background="{StaticResource Accent}"
+                                                        VerticalAlignment="Center"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge" Focusable="False">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Background="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="16" Height="16">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="White" Stroke="#FF15151B" StrokeThickness="1"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Flat buttons; the primary one is accent-filled. -->
+        <Style x:Key="FlatButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource Text}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" CornerRadius="6"
+                                Background="{StaticResource Field}"
+                                BorderBrush="#FF3A3A48" BorderThickness="1"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF2A2A35"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource FlatButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" CornerRadius="6"
+                                Background="{StaticResource Accent}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF56AEFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#FF2D86DC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel Margin="24,20,24,20">
+
+        <!-- general -->
+        <TextBlock Text="GENERAL" Style="{StaticResource SectionHeader}"/>
+        <CheckBox x:Name="EnabledCheck" Content="Enable the Mission Control hotkey"/>
+        <TextBlock Style="{StaticResource Hint}"
+                   Text="When off, the hotkey is released so other apps can use it. The tray menu still works."/>
+        <CheckBox x:Name="StartupCheck" Content="Start with Windows" Margin="0,14,0,0"/>
+
+        <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18"/>
+
+        <!-- hotkey -->
+        <TextBlock Text="HOTKEY" Style="{StaticResource SectionHeader}"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Border x:Name="HotkeyBorder" Grid.Column="0"
+                    Background="{StaticResource Field}"
+                    BorderBrush="#FF3A3A48" BorderThickness="1"
+                    CornerRadius="6" Height="34" Cursor="Hand"
+                    MouseLeftButtonDown="OnHotkeyBoxClick">
+                <TextBlock x:Name="HotkeyText" Text="Ctrl+Alt+M"
+                           VerticalAlignment="Center" Margin="12,0"
+                           FontSize="13"/>
+            </Border>
+
+            <Button x:Name="RebindButton" Grid.Column="1" Margin="10,0,0,0"
+                    Style="{StaticResource FlatButton}"
+                    Content="Change…" Click="OnRebindClick"/>
+        </Grid>
+        <TextBlock x:Name="HotkeyStatus" Style="{StaticResource Hint}"
+                   Text="Press the hotkey again while open to focus the highlighted window."/>
+
+        <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18"/>
+
+        <!-- animation -->
+        <TextBlock Text="ANIMATION" Style="{StaticResource SectionHeader}"/>
+
+        <Grid Margin="0,0,0,4">
+            <TextBlock Text="Open"/>
+            <TextBlock x:Name="IntroValue" Text="0.20 s" HorizontalAlignment="Right"
+                       Foreground="{StaticResource Muted}" FontSize="12"/>
+        </Grid>
+        <Slider x:Name="IntroSlider" Minimum="0" Maximum="1.5"
+                SmallChange="0.01" LargeChange="0.05"
+                IsSnapToTickEnabled="True" TickFrequency="0.01"
+                ValueChanged="OnIntroChanged"/>
+
+        <Grid Margin="0,16,0,4">
+            <TextBlock Text="Close"/>
+            <TextBlock x:Name="OutroValue" Text="0.20 s" HorizontalAlignment="Right"
+                       Foreground="{StaticResource Muted}" FontSize="12"/>
+        </Grid>
+        <Slider x:Name="OutroSlider" Minimum="0" Maximum="1.5"
+                SmallChange="0.01" LargeChange="0.05"
+                IsSnapToTickEnabled="True" TickFrequency="0.01"
+                ValueChanged="OnOutroChanged"/>
+
+        <TextBlock Style="{StaticResource Hint}"
+                   Text="How long windows take to morph into the grid and back. 0 s is instant."/>
+
+        <Border Height="1" Background="{StaticResource Line}" Margin="0,18,0,18"/>
+
+        <!-- footer -->
+        <Grid>
+            <Button Style="{StaticResource FlatButton}" HorizontalAlignment="Left"
+                    Content="Restore defaults" Click="OnRestoreDefaults"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource FlatButton}" Content="Quit app" Click="OnQuit"/>
+                <Button Style="{StaticResource PrimaryButton}" Content="Done" Margin="8,0,0,0"
+                        Click="OnClose" IsDefault="True"/>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock x:Name="PathText" Style="{StaticResource Hint}" Margin="0,14,0,0"
+                   Foreground="#FF60636F" FontSize="10"/>
+    </StackPanel>
+</Window>
+

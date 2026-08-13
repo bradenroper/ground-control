@@ -6,6 +6,9 @@ obj/
 x64/
 x86/
 
+# Installer output
+dist/
+
 # Visual Studio
 .vs/
 *.user

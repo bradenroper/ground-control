@@ -16,6 +16,7 @@ namespace MissionControl;
 public sealed class OverlayController
 {
     private readonly IntPtr _excludeHwnd;
+    private readonly Settings _settings;
     private readonly List<OverlayWindow> _overlays = new();
     private readonly List<OverlayItem> _all = new();
 
@@ -26,7 +27,11 @@ public sealed class OverlayController
 
     public event Action? Closed;
 
-    public OverlayController(IntPtr excludeHwnd) => _excludeHwnd = excludeHwnd;
+    public OverlayController(IntPtr excludeHwnd, Settings settings)
+    {
+        _excludeHwnd = excludeHwnd;
+        _settings = settings;
+    }
 
     /// <summary>Builds and shows the overlays. Returns false (and does nothing) if there are no windows.</summary>
     public bool Show()
@@ -57,7 +62,7 @@ public sealed class OverlayController
         foreach (var monitor in MonitorEnumerator.GetMonitors())
         {
             byMonitor.TryGetValue(monitor.Handle, out var monitorWindows);
-            var overlay = new OverlayWindow(this, monitor, monitorWindows ?? new List<WindowInfo>());
+            var overlay = new OverlayWindow(this, monitor, monitorWindows ?? new List<WindowInfo>(), _settings);
             overlay.Prepare();                  // compute layout (no HWND needed yet)
             _overlays.Add(overlay);
             _all.AddRange(overlay.Items);
@@ -138,7 +143,12 @@ public sealed class OverlayController
             double perp = dx != 0 ? Math.Abs(vy) : Math.Abs(vx);
             if (along <= 1) continue;
 
-            double score = along + 2 * perp;   // prefer near & well-aligned
+            // Weighted-distance metric: a window PerpWeight× further off-axis costs the
+            // same as one that far along the travel axis. This makes direction dominate,
+            // so "right" picks the window mostly to the right rather than one mostly below
+            // that happens to be slightly closer in x.
+            const double PerpWeight = 3.0;
+            double score = Math.Sqrt(along * along + PerpWeight * PerpWeight * perp * perp);
             if (score < bestScore) { bestScore = score; best = k; }
         }
 
