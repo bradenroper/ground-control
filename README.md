@@ -20,7 +20,9 @@ No third-party packages — only built-in Windows APIs (`user32`, `dwmapi`).
 
 ## Install
 
-Run `dist/GroundControl-Setup-<version>.exe` (built by `build/build-installer.ps1`). It
+Find the latest Windows Installer on the [Releases](https://github.com/bradenroper/ground-control/releases) page.
+
+You can also build an installer with `build/build-installer.ps1` and then run it at `dist/GroundControl-Setup-<version>.exe`. It
 installs per-user into `%LOCALAPPDATA%\Programs`, needs no admin rights, and bundles the
 .NET runtime, so nothing else has to be installed first.
 
