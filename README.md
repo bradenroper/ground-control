@@ -4,6 +4,8 @@ A prototype that brings macOS-style **Mission Control / Exposé** to Windows: pr
 hotkey and every open window smoothly shrinks into an organic layout. Move the
 highlight with the arrow keys, then press the hotkey again (or Enter) to jump to that window.
 
+Find the latest Windows Installer on the [Releases](https://github.com/bradenroper/ground-control/releases) page.
+
 ![Ground Control Demo gif](resources/GroundControlDemo.gif)
 
 A tray icon will be added to control Ground Control, with more settings available upon right-click.
