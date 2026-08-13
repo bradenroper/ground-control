@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Windows;
 using Forms = System.Windows.Forms;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
 /// The notification-area icon and its menu — the app's only persistent UI. Uses WinForms'
@@ -18,7 +18,7 @@ public sealed class TrayIcon : IDisposable
     private readonly Forms.ToolStripMenuItem _startupItem;
     private Icon? _iconResource;
 
-    /// <summary>The menu's "Show Mission Control" item — the same action as the hotkey.</summary>
+    /// <summary>The menu's "Show Ground Control" item — the same action as the hotkey.</summary>
     public event Action? Activate;
     public event Action? SettingsRequested;
     public event Action? QuitRequested;
@@ -50,7 +50,7 @@ public sealed class TrayIcon : IDisposable
         { CheckOnClick = false };
 
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add(new Forms.ToolStripMenuItem("Show Mission Control", null, (_, _) => Activate?.Invoke())
+        menu.Items.Add(new Forms.ToolStripMenuItem("Show Ground Control", null, (_, _) => Activate?.Invoke())
         {
             Font = new Font(Forms.Control.DefaultFont, System.Drawing.FontStyle.Bold)
         });
@@ -81,7 +81,7 @@ public sealed class TrayIcon : IDisposable
 
         string state = _settings.Enabled ? _settings.Hotkey : "disabled";
         // NotifyIcon truncates the tooltip past 63 characters.
-        _icon.Text = Truncate($"Mission Control ({state})", 63);
+        _icon.Text = Truncate($"Ground Control ({state})", 63);
     }
 
     /// <param name="warning">Warnings get the alert glyph; everything else is informational.</param>

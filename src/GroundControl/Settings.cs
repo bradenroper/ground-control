@@ -3,10 +3,10 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
-/// User-editable preferences, persisted as JSON in %APPDATA%\MissionControl\settings.json.
+/// User-editable preferences, persisted as JSON in %APPDATA%\GroundControl\settings.json.
 /// The file is hand-editable; anything missing or out of range falls back to a default,
 /// so a corrupt file degrades to defaults instead of preventing startup.
 /// </summary>
@@ -39,7 +39,7 @@ public sealed class Settings
 
     // ---------------------------------------------------------------- persistence
     public static string Directory => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MissionControl");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GroundControl");
 
     public static string FilePath => Path.Combine(Directory, "settings.json");
 

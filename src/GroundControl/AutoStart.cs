@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Win32;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
 /// "Start with Windows" via the per-user Run key. HKCU needs no elevation, which matters
@@ -10,7 +10,7 @@ namespace MissionControl;
 public static class AutoStart
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string ValueName = "MissionControl";
+    private const string ValueName = "GroundControl";
 
     public static string ExecutablePath => Environment.ProcessPath ?? string.Empty;
 

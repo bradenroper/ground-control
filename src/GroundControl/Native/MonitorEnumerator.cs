@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace MissionControl.Native;
+namespace GroundControl.Native;
 
 public static class MonitorEnumerator
 {

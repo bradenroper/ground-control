@@ -1,4 +1,4 @@
-namespace MissionControl.Layout;
+namespace GroundControl.Layout;
 
 /// <summary>A double-precision rectangle (X,Y = top-left, W,H = size).</summary>
 public readonly record struct RectD(double X, double Y, double W, double H)

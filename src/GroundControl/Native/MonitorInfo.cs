@@ -1,6 +1,6 @@
 using System;
 
-namespace MissionControl.Native;
+namespace GroundControl.Native;
 
 /// <summary>A physical display: bounds are in virtual-desktop physical pixels.</summary>
 public sealed class MonitorInfo

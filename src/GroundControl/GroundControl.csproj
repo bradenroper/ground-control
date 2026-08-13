@@ -11,16 +11,16 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Resources\app.ico</ApplicationIcon>
-    <AssemblyName>MissionControl</AssemblyName>
-    <RootNamespace>MissionControl</RootNamespace>
+    <AssemblyName>GroundControl</AssemblyName>
+    <RootNamespace>GroundControl</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
     <Version>1.0.0</Version>
-    <Product>Mission Control</Product>
+    <Product>Ground Control</Product>
     <Company>Braden Roper</Company>
     <Copyright>Copyright © 2026 Braden Roper</Copyright>
-    <Description>macOS-style Mission Control for Windows</Description>
+    <Description>macOS Mission Control-style window overview for Windows</Description>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- WFO0003 asks us to move the DPI settings out of the manifest, but this is a WPF app
          that needs PerMonitorV2 declared there: thumbnail rects are physical pixels. -->

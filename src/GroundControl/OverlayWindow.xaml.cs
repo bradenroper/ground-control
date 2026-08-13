@@ -7,10 +7,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using MissionControl.Layout;
-using MissionControl.Native;
+using GroundControl.Layout;
+using GroundControl.Native;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
 /// One overlay per monitor: a dark, full-monitor, topmost window that lays out the windows

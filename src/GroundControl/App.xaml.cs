@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Windows;
-using MissionControl.Native;
+using GroundControl.Native;
 
-namespace MissionControl;
+namespace GroundControl;
 
 public partial class App : Application
 {
@@ -15,7 +15,7 @@ public partial class App : Application
     /// Also named in the installer (<c>AppMutex</c>) so setup can detect a running copy and
     /// ask the user to close it instead of failing to replace the executable.
     /// </summary>
-    private const string InstanceMutexName = "MissionControlSingleInstance";
+    private const string InstanceMutexName = "GroundControlSingleInstance";
 
     /// <summary>Command-line switch (and Start Menu shortcut) that opens the settings window.</summary>
     private const string SettingsArgument = "--settings";
@@ -62,7 +62,7 @@ public partial class App : Application
         // so there is always a keyboard way out.
         _hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT | NativeMethods.MOD_SHIFT, VK_Q, Shutdown);
 
-        // "MissionControl.exe --settings" from a second instance lands here.
+        // "GroundControl.exe --settings" from a second instance lands here.
         _signal = new InstanceSignal(Dispatcher, ShowSettings);
 
         _tray = new TrayIcon(_settings);
@@ -75,7 +75,7 @@ public partial class App : Application
                 $"{_settings.Hotkey} is already in use by another app. Open Settings from the tray icon to pick another.",
                 warning: true);
         else if (_settings.IsFirstRun)
-            _tray.ShowMessage("Mission Control is running",
+            _tray.ShowMessage("Ground Control is running",
                 $"Press {_settings.Hotkey} to show your windows. Settings live in the tray icon.");
 
         if (needsSave)

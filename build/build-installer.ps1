@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Publishes Mission Control and compiles the Windows installer.
+    Publishes Ground Control and compiles the Windows installer.
 
 .DESCRIPTION
-    Produces dist\MissionControl-Setup-<version>.exe.
+    Produces dist\GroundControl-Setup-<version>.exe.
 
     The app is published self-contained and single-file, so the installer works on a machine
     with no .NET runtime and drops exactly one executable into the install folder.
@@ -26,10 +26,10 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $root       = Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) '..')
-$project    = Join-Path $root 'src\MissionControl\MissionControl.csproj'
-$publishDir = Join-Path $root "src\MissionControl\bin\Release\net9.0-windows\$Runtime\publish"
+$project    = Join-Path $root 'src\GroundControl\GroundControl.csproj'
+$publishDir = Join-Path $root "src\GroundControl\bin\Release\net9.0-windows\$Runtime\publish"
 $distDir    = Join-Path $root 'dist'
-$issPath    = Join-Path $root 'installer\MissionControl.iss'
+$issPath    = Join-Path $root 'installer\GroundControl.iss'
 
 # ---------------------------------------------------------------- publish
 if (-not $SkipPublish) {
@@ -50,7 +50,7 @@ if (-not $SkipPublish) {
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE" }
 }
 
-$exe = Join-Path $publishDir 'MissionControl.exe'
+$exe = Join-Path $publishDir 'GroundControl.exe'
 if (-not (Test-Path $exe)) { throw "Published executable not found: $exe" }
 Write-Host ("    {0} ({1:N1} MB)" -f $exe, ((Get-Item $exe).Length / 1MB))
 
@@ -71,6 +71,6 @@ Write-Host "==> Compiling installer with $iscc" -ForegroundColor Cyan
 & $iscc "/DAppVersion=$Version" "/DSourceDir=$publishDir" "/DOutputDir=$distDir" $issPath
 if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
 
-$setup = Join-Path $distDir "MissionControl-Setup-$Version.exe"
+$setup = Join-Path $distDir "GroundControl-Setup-$Version.exe"
 Write-Host ""
 Write-Host ("==> {0} ({1:N1} MB)" -f $setup, ((Get-Item $setup).Length / 1MB)) -ForegroundColor Green

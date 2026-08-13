@@ -1,4 +1,4 @@
-# Mission Control for Windows
+# Ground Control
 
 A prototype that brings macOS-style **Mission Control / Exposé** to Windows: press a
 hotkey and every open window smoothly shrinks into an aspect-preserving grid. Move the
@@ -17,14 +17,14 @@ No third-party packages — only built-in Windows APIs (`user32`, `dwmapi`).
 
 ## Install
 
-Run `dist/MissionControl-Setup-<version>.exe` (built by `build/build-installer.ps1`). It
+Run `dist/GroundControl-Setup-<version>.exe` (built by `build/build-installer.ps1`). It
 installs per-user into `%LOCALAPPDATA%\Programs`, needs no admin rights, and bundles the
 .NET runtime, so nothing else has to be installed first.
 
 ## Run from source
 
 ```sh
-dotnet run --project src/MissionControl/MissionControl.csproj
+dotnet run --project src/GroundControl/GroundControl.csproj
 ```
 
 The app lives in the notification area — right-click its icon for **Settings…**, where the

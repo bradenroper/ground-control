@@ -4,7 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
 /// The settings UI, reachable from the tray icon. Every change applies (and saves) immediately —

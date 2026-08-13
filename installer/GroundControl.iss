@@ -1,25 +1,25 @@
-; Inno Setup script for Mission Control.
+; Inno Setup script for Ground Control.
 ;
 ; Built by build\build-installer.ps1, which publishes a self-contained single-file exe
 ; and passes the paths in. To compile by hand:
 ;
-;   ISCC.exe /DSourceDir="<publish folder>" /DOutputDir="<dist folder>" installer\MissionControl.iss
+;   ISCC.exe /DSourceDir="<publish folder>" /DOutputDir="<dist folder>" installer\GroundControl.iss
 ;
 ; The install is per-user by default (PrivilegesRequired=lowest): it lands in
 ; %LOCALAPPDATA%\Programs, writes only HKCU, and never shows a UAC prompt — so people
 ; without local admin rights can install it. An admin can still pass /ALLUSERS.
 
-#define AppName        "Mission Control"
+#define AppName        "Ground Control"
 #define AppPublisher   "Braden Roper"
-#define AppExeName     "MissionControl.exe"
-#define AppUrl         "https://github.com/bradenroper/mission-control"
+#define AppExeName     "GroundControl.exe"
+#define AppUrl         "https://github.com/bradenroper/ground-control"
 
 #ifndef AppVersion
   #define AppVersion "1.0.0"
 #endif
 
 #ifndef SourceDir
-  #define SourceDir "..\src\MissionControl\bin\Release\net9.0-windows\win-x64\publish"
+  #define SourceDir "..\src\GroundControl\bin\Release\net9.0-windows\win-x64\publish"
 #endif
 
 #ifndef OutputDir
@@ -36,7 +36,7 @@ AppPublisher={#AppPublisher}
 AppPublisherURL={#AppUrl}
 VersionInfoVersion={#AppVersion}
 
-DefaultDirName={autopf}\Mission Control
+DefaultDirName={autopf}\Ground Control
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 DisableDirPage=auto
@@ -46,20 +46,20 @@ DisableReadyPage=no
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline
 
-; Mission Control targets Windows 10/11 (DWM live thumbnails + PerMonitorV2 DPI).
+; Ground Control targets Windows 10/11 (DWM live thumbnails + PerMonitorV2 DPI).
 MinVersion=10.0.17763
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 
 ; Setup refuses to overwrite a running copy, so ask the user to close it first. The name
 ; matches the mutex App.xaml.cs creates.
-AppMutex=MissionControlSingleInstance
+AppMutex=GroundControlSingleInstance
 CloseApplications=yes
 RestartApplications=no
 
 OutputDir={#OutputDir}
-OutputBaseFilename=MissionControl-Setup-{#AppVersion}
-SetupIconFile=..\src\MissionControl\Resources\app.ico
+OutputBaseFilename=GroundControl-Setup-{#AppVersion}
+SetupIconFile=..\src\GroundControl\Resources\app.ico
 UninstallDisplayIcon={app}\{#AppExeName}
 UninstallDisplayName={#AppName}
 Compression=lzma2/max
@@ -70,7 +70,7 @@ WizardStyle=modern
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "startup"; Description: "Start Mission Control when I sign in"; GroupDescription: "Additional options:"
+Name: "startup"; Description: "Start Ground Control when I sign in"; GroupDescription: "Additional options:"
 
 [Files]
 Source: "{#SourceDir}\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
@@ -82,11 +82,11 @@ Name: "{autoprograms}\{#AppName} Settings"; Filename: "{app}\{#AppExeName}"; Par
 [Registry]
 ; The app manages this key itself from its settings; this seeds it when the task is ticked.
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; \
-    ValueName: "MissionControl"; ValueData: """{app}\{#AppExeName}"""; \
+    ValueName: "GroundControl"; ValueData: """{app}\{#AppExeName}"""; \
     Flags: uninsdeletevalue; Tasks: startup
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "Start Mission Control now"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExeName}"; Description: "Start Ground Control now"; Flags: nowait postinstall skipifsilent
 
 [Code]
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
@@ -95,5 +95,5 @@ begin
   // Run value was written by the app rather than by [Registry] and would be left behind.
   if CurUninstallStep = usPostUninstall then
     RegDeleteValue(HKEY_CURRENT_USER,
-      'Software\Microsoft\Windows\CurrentVersion\Run', 'MissionControl');
+      'Software\Microsoft\Windows\CurrentVersion\Run', 'GroundControl');
 end;

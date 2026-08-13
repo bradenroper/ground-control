@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Windows.Threading;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
 /// One-way nudge from a second, short-lived instance to the running one: "the user asked for
@@ -11,7 +11,7 @@ namespace MissionControl;
 /// </summary>
 public sealed class InstanceSignal : IDisposable
 {
-    private const string EventName = @"Local\MissionControl.ShowSettings";
+    private const string EventName = @"Local\GroundControl.ShowSettings";
 
     private readonly EventWaitHandle _handle;
     private readonly RegisteredWaitHandle _registration;

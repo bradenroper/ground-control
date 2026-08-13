@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Generates src/MissionControl/Resources/app.ico (the exe + tray icon).
+    Generates src/GroundControl/Resources/app.ico (the exe + tray icon).
 
 .DESCRIPTION
     The icon is drawn in code rather than checked in as an opaque binary, so it can be
@@ -20,7 +20,7 @@ $ErrorActionPreference = 'Stop'
 
 if (-not $OutputPath) {
     $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-    $OutputPath = Join-Path $root '..\src\MissionControl\Resources\app.ico'
+    $OutputPath = Join-Path $root '..\src\GroundControl\Resources\app.ico'
 }
 Add-Type -AssemblyName System.Drawing
 

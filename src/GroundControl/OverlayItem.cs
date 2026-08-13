@@ -1,7 +1,7 @@
-using MissionControl.Layout;
-using MissionControl.Native;
+using GroundControl.Layout;
+using GroundControl.Native;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>One window's presence in the overlay: its live thumbnail and the rects driving its animation.</summary>
 public sealed class OverlayItem

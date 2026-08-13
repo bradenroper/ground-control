@@ -1,6 +1,6 @@
 using System;
 
-namespace MissionControl.Native;
+namespace GroundControl.Native;
 
 /// <summary>A top-level window that is a candidate for the overlay grid.</summary>
 public sealed class WindowInfo

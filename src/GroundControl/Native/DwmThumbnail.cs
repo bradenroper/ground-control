@@ -1,6 +1,6 @@
 using System;
 
-namespace MissionControl.Native;
+namespace GroundControl.Native;
 
 /// <summary>
 /// A live, GPU-composited thumbnail of a source window, drawn into a rectangle on a

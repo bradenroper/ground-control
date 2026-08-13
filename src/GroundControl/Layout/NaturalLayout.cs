@@ -1,6 +1,6 @@
 using System;
 
-namespace MissionControl.Layout;
+namespace GroundControl.Layout;
 
 /// <summary>
 /// "Natural" declumping layout, in the spirit of KDE's Present Windows effect.

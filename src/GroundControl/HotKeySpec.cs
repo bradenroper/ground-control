@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
-using MissionControl.Native;
+using GroundControl.Native;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
 /// A modifier + key combination, in the form <c>RegisterHotKey</c> wants (Win32 modifier

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Interop;
-using MissionControl.Native;
+using GroundControl.Native;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
 /// Registers process-wide global hotkeys. Uses a hidden message window so hotkeys

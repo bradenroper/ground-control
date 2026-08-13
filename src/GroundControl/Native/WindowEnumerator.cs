@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MissionControl.Native;
+namespace GroundControl.Native;
 
 /// <summary>
 /// Produces an "Alt+Tab style" list of real, visible, top-level application windows,

@@ -1,4 +1,4 @@
-<Window x:Class="MissionControl.OverlayWindow"
+<Window x:Class="GroundControl.OverlayWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         WindowStyle="None"

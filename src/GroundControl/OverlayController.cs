@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
-using MissionControl.Layout;
-using MissionControl.Native;
+using GroundControl.Layout;
+using GroundControl.Native;
 
-namespace MissionControl;
+namespace GroundControl;
 
 /// <summary>
 /// Owns one overlay window per monitor and a single global selection. Handles navigation

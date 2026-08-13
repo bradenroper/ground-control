@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MissionControl.Native;
+namespace GroundControl.Native;
 
 /// <summary>
 /// P/Invoke surface for window enumeration, DWM live thumbnails, global hotkeys,
